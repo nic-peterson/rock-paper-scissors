@@ -8,6 +8,8 @@ const playerPlay = (buttonID) => {
   return buttonID;
 };
 
+let scoreArr = [0, 0];
+
 // buttons is a node list. It looks and acts much like an array.
 const buttons = document.querySelectorAll("button");
 
@@ -17,11 +19,25 @@ buttons.forEach((button) => {
   button.addEventListener("click", () => {
     const playerSelection = playerPlay(button.id);
     const computerSelection = computerPlay(choices);
-    console.log(
-      `playerSelection: ${playerSelection}\ncomputerSelection: ${computerSelection}`
-    );
-    clearRoundResult("result");
-    playRound(playerSelection, computerSelection);
+
+    if (!isGameOver(scoreArr)) {
+      clear("result");
+      clear("score");
+      playRound(playerSelection, computerSelection);
+    }
+    if (isGameOver(scoreArr)) {
+      if (scoreArr[0] > scoreArr[1]) {
+        updateBoard("You win the 5 game series!", "round", "result");
+        clear("result");
+        clear("score");
+        resetScore(scoreArr);
+      } else {
+        updateBoard("You lost the 5 game series!", "round", "result");
+        clear("result");
+        clear("score");
+        resetScore(scoreArr);
+      }
+    }
   });
 });
 
@@ -53,27 +69,54 @@ const playRound = (playerSelection, computerSelection) => {
     }
   }
 
-  //console.log(outputString(outcome, playerSelection, computerSelection));
-  updateRoundResult(outputString(outcome, playerSelection, computerSelection));
+  updateBoard(
+    outputRoundString(outcome, playerSelection, computerSelection),
+    "round",
+    "result"
+  );
+  updateScore(outcome, scoreArr);
+  updateBoard(outputScoreString(scoreArr), "scoreboard", "score");
   return outcome;
 };
 
-const updateRoundResult = (string) => {
-  const scoreBoard = document.querySelector("#score");
-  console.log(scoreBoard);
-  const score = document.createElement('h2');
+const isGameOver = (score) => {
+  return score[0] >= 5 || score[1] >= 5 ? true : false;
+};
+
+const updateScore = (outcome, score) => {
+  return outcome === "tie"
+    ? score
+    : outcome === "win"
+    ? (score[0] += 1)
+    : (score[1] += 1);
+};
+
+const resetScore = (scoreArr) => {
+  scoreArr[0] = 0;
+  scoreArr[1] = 0;
+  return scoreArr;
+};
+
+const updateBoard = (string, parentID, childID) => {
+  const scoreBoard = document.querySelector(`#${parentID}`);
+  const score = document.createElement("h2");
   score.textContent = string;
-  score.setAttribute("id", "result");
-  console.log(score.textContent);
+  score.setAttribute("id", childID);
   scoreBoard.appendChild(score);
-}
+};
 
-const clearRoundResult = (id) => {  
+const clear = (id) => {
   const elemToRemove = document.querySelector(`#${id}`);
-  if (elemToRemove) {elemToRemove.parentNode.removeChild(elemToRemove);} 
-}
+  if (elemToRemove) {
+    elemToRemove.parentNode.removeChild(elemToRemove);
+  }
+};
 
-const outputString = (outcome, playerSelection, computerSelection) => {
+const outputScoreString = (score) => {
+  return `SCORE\nPlayer: ${score[0]} -- Computer: ${score[1]}`;
+};
+
+const outputRoundString = (outcome, playerSelection, computerSelection) => {
   return outcome === "tie"
     ? `There was a tie because both players played ${capitalizeFirstLetter(
         playerSelection
@@ -90,42 +133,3 @@ const outputString = (outcome, playerSelection, computerSelection) => {
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
-
-const roundSummary = (outcome, scoreArr) => {
-  if (outcome === "tie") {
-    return;
-  } else if (outcome === "win") {
-    scoreArr[0] += 1;
-  } else if (outcome === "lose") {
-    scoreArr[1] += 1;
-  }
-  return scoreArr;
-};
-
-const game = () => {
-  let scoreArr = [0, 0];
-
-  /*
-  for (let i = 0; i < 5; i++) {
-    playerSelection = playerPlay().toLowerCase();
-    computerSelection = computerPlay(choices);
-    console.log(`ROUND ${i + 1}`);
-    roundSummary(playRound(playerSelection, computerSelection), scoreArr);
-  }
-  */
-
-  /*
-  if (scoreArr[0] === scoreArr[1]) {
-    console.log("There was a tie!");
-  } else if (scoreArr[0] < scoreArr[1]) {
-    console.log(`The computer beat you by ${scoreArr[1] - scoreArr[0]}!`);
-  } else if (scoreArr[0] > scoreArr[1]) {
-    console.log(`You beat the computer by ${scoreArr[0] - scoreArr[1]}!`);
-  }
-  console.log(
-    `The final score is\nplayer: ${scoreArr[0]} - computer: ${scoreArr[1]}`
-  );
-  */
-};
-
-//game();
